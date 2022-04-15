@@ -40,6 +40,16 @@ int	un_strncmp(const char *str1, const unsigned char *str2, size_t n)
 	return (str1[i] - str2[i]);
 }
 
+int	un_strcmp(const char *str1, const unsigned char *str2)
+{
+    size_t  i;
+
+    i = 0;
+    while (str1[i] == str2[i] && str1[i] != '\0' && str2[i] != '\0')
+        ++i;
+    return (str1[i] - str2[i]);
+}
+
 unsigned char   *str_to_ustr(const char *str)
 {
     unsigned char   *ustr;

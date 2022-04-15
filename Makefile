@@ -1,7 +1,7 @@
 NAME		=	test_task
 
 CC 			=	gcc
-CFLAGS		=	-Wextra -Wall -Werror
+CFLAGS		=	
 
 SRC			=	fill_data.c init_memory.c main.c sort.c utils.c
 
