@@ -175,7 +175,7 @@ t_tlv   *parse_tlv(unsigned char *pRxBuf)
     else
         begin->v = parse_v(pRxBuf, begin->l, &i);
     parse_other(pRxBuf, &i, begin);
-    free (pRxBuf);
+    // free (pRxBuf);
     return (begin);
 }
 
@@ -274,20 +274,75 @@ void    fill_2(t_tlv *tlv, app_info *apps)
     f = 1;
 }
 
+void    free_tlv(t_tlv  **tlv)
+{
+    t_tlv   *tmp;
+    t_tlv   *beg;
+
+
+    tmp = *tlv;
+    while (tmp->next)
+    {
+        beg = tmp;
+        if (tmp->sub_tlv)
+            free_tlv(&(tmp->sub_tlv));
+        tmp = tmp->next;
+        {
+            if (beg->sub_tlv)
+            free(beg->sub_tlv);
+            if (beg->t)
+            free(beg->t);
+            if (beg->v)
+            free(beg->v);
+            free(beg);
+        }
+    }
+    {
+        if (tmp->sub_tlv)
+        free_tlv(&(tmp->sub_tlv));
+        if (tmp->t)
+        free(tmp->t);
+        if (tmp->v)
+        free(tmp->v);
+        free(tmp);
+    }
+    (*tlv) = NULL;
+}
+
+void    free_apps(app_info **apps)
+{
+    app_info    *tmp;
+    app_info    *beg;
+
+    tmp = *apps;
+    while (tmp->next)
+    {
+        beg = tmp;
+        tmp = tmp->next;
+        if (beg->pix)
+            free(beg->pix);
+        if (beg->rid)
+            free(beg->rid);
+        free(beg);
+    }
+    if (tmp->pix)
+        free(tmp->pix);
+    if (tmp->rid)
+        free(tmp->rid);
+    free(tmp);
+    (*apps) = NULL;
+}
+
 void    fill_1(t_tlv *tlv, app_info *apps)
 {
     while (tlv != NULL)
     {
         if (!un_strcmp("61", tlv->t) && tlv->sub_tlv)
             fill_2(tlv->sub_tlv, apps);
-
-        
-        
         if (tlv->sub_tlv)
             fill_1(tlv->sub_tlv, apps);
         tlv = tlv->next;
     }
-    //free(tlv);
 }
 
 void    print_apps(app_info *apps)
@@ -312,25 +367,57 @@ void    print_apps(app_info *apps)
 void    del_n_sup_apps(app_info **apps)
 {
     app_info    *prev_elem = NULL;
-    app_info    *tmp = *apps;
+    app_info    *cur;
 
-    while (tmp != NULL)
+    app_info    *tmp;
+    // app_info    *beg;
+
+    cur = *apps;
+
+    while (cur != NULL)
     {
-        if (un_strcmp("A000000658", tmp->rid))
+        if (un_strcmp("A000000658", cur->rid))
         {
             if (prev_elem != NULL)
-                prev_elem->next = tmp->next;
+                prev_elem->next = cur->next;
             else
-                *apps = tmp->next;
+                (*apps) = cur->next;
+            tmp = cur->next;
             {
-                free(tmp->pix);
-                free(tmp->rid);
-                free(tmp);
+                if (cur->pix)
+                    free(cur->pix);
+                if (cur->rid)
+                    free(cur->rid);
+                free(cur);
             }
+            cur = tmp;
         }
-        prev_elem = tmp;
-        tmp = tmp->next;
+        else
+        {
+            prev_elem = cur;
+            cur = cur->next;
+        }
     }
+
+    // while (tmp != NULL)
+    // {
+    //     if (un_strcmp("A000000658", tmp->rid))
+    //     {
+    //         if (prev_elem != NULL)
+    //             prev_elem->next = tmp->next;
+    //         else
+    //             (*apps) = tmp->next;
+    //         {
+    //             if (tmp->pix)
+    //                 free(tmp->pix);
+    //             if (tmp->rid)
+    //                 free(tmp->rid);
+    //             free(tmp);
+    //         }
+    //     }
+    //     prev_elem = tmp;
+    //     tmp = tmp->next;
+    // }
 }
 
 // void    sort_app_prior(app_info *apps, unsigned short app_num)
@@ -405,17 +492,20 @@ int     main(int argc, char **argv)
     }
     pRxBuf = str_to_ustr(argv[1]);
     tlv = parse_tlv(pRxBuf);
-    // print_tlv(tlv, 0);
+    free(pRxBuf);
+    print_tlv(tlv, 0);
     // print_tlv(tlv, 0);
     // app_num = app_mem(tlv);
     //printf("%d\n", app_num);
     apps = init_app();
     fill_1(tlv, apps);
+    free_tlv(&tlv);
     // print_apps(apps);
     del_n_sup_apps(&apps);
-    //if (apps)
-    sort_apps(&apps);
+    if (apps)
+        sort_apps(&apps);
     print_apps(apps);
+    free_apps(&apps);
     // apps = malloc(sizeof(app_info) * app_num);
     // init_apps_prior(apps, app_num);
     // i = 8 + char_to_num(pRxBuf[6], pRxBuf[7]) * 2;
