@@ -1,51 +1,84 @@
 #include "sel_ppse.h"
 
-// unsigned short  app_mem(unsigned char *pRxBuf, unsigned short i, unsigned short end)
-// {
-//     unsigned short  num = 0;
-//     unsigned short  l_end;  
-
-//     while (i < end)
-//     {
-//         if (pRxBuf[i] == '6' && pRxBuf[i + 1] == '1')
-//         {
-//             i += 2;
-//             l_end = char_to_num(pRxBuf[i], pRxBuf[i + 1]) * 2 + i + 2;
-//             i += 2;
-//             while (i < l_end)
-//             {
-//                 if (!un_strncmp("9F2A", (pRxBuf + i), 4))
-//                 {
-//                     i += 4;
-//                     i += 2 + char_to_num(pRxBuf[i], pRxBuf[i + 1]) * 2;
-//                 }
-//                 if (pRxBuf[i] == '4' && pRxBuf[i + 1] == 'F')
-//                 {
-//                     i += 2;
-//                     i += char_to_num(pRxBuf[i], pRxBuf[i + 1]) * 2 + 2;
-//                     ++num;  
-//                 }
-//                 if (pRxBuf[i] == '8' && pRxBuf[i + 1] == '7')
-//                 {
-//                     i += 2;
-//                     i += char_to_num(pRxBuf[i], pRxBuf[i + 1]) * 2 + 2;
-//                 }
-//             }
-//         }
-//         else
-//             ++i;
-//     }
-//     return num;
-// }
-
-void    free_all(app_info *apps, unsigned short app_num)
+app_info    *init_app()
 {
-    for (unsigned short i = 0; i < app_num; ++i)
-    {
-        free(apps[i].pix);
-        free(apps[i].rid);
-    }
-    free(apps);
+    app_info    *new_app;
+
+    new_app = malloc(sizeof(app_info));
+    new_app->rid = NULL;
+    new_app->pix = NULL;
+    new_app->next = NULL;
+    new_app->prior = 16;
+    return (new_app);
 }
 
+t_tlv   *init_tlv()
+{
+    t_tlv   *new_tlv;
 
+    new_tlv = malloc(sizeof(t_tlv));
+    new_tlv->next = NULL;
+    new_tlv->t = NULL;
+    new_tlv->l = 0;
+    new_tlv->v = NULL;
+    new_tlv->sub_tlv = NULL;
+    return (new_tlv);
+}
+
+void    free_1_app(app_info **app)
+{
+    if ((*app)->pix)
+        free((*app)->pix);
+    if ((*app)->rid)
+        free((*app)->rid);
+    free(*app);
+    (*app) = NULL;
+}
+
+void    free_apps(app_info **apps)
+{
+    app_info    *tmp;
+    app_info    *beg;
+
+    tmp = *apps;
+    while (tmp->next)
+    {
+        beg = tmp;
+        tmp = tmp->next;
+        free_1_app(&beg);
+    }
+    free_1_app(&tmp);
+    (*apps) = NULL;
+}
+
+void    free_1_tlv(t_tlv **tlv)
+{
+    if ((*tlv)->t)
+        free ((*tlv)->t);
+    if ((*tlv)->v)
+        free ((*tlv)->v);
+    free (*tlv);
+    (*tlv) = NULL;
+}
+
+void    free_tlv(t_tlv  **tlv)
+{
+    t_tlv   *tmp;
+    t_tlv   *beg;
+
+    tmp = *tlv;
+    while (tmp->next)
+    {
+        beg = tmp;
+        if (tmp->sub_tlv)
+            free_tlv(&(tmp->sub_tlv));
+        tmp = tmp->next;
+        free_1_tlv(&beg);
+    }
+    {
+        if (tmp->sub_tlv)
+            free_tlv(&(tmp->sub_tlv));
+        free_1_tlv(&tmp);
+    }
+    (*tlv) = NULL;
+}

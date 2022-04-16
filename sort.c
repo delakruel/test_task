@@ -1,25 +1,64 @@
 #include "sel_ppse.h"
 
-static void    swap_infos(app_info *apps, unsigned short first, unsigned short second)
+static void    swap_with_next(app_info *app)
 {
     unsigned char   *tmp_str;
     unsigned short  tmp_num;
 
-    tmp_str = apps[first].pix;
-    apps[first].pix = apps[second].pix;
-    apps[second].pix = tmp_str;
-    tmp_str = apps[first].rid;
-    apps[first].rid = apps[second].rid;
-    apps[second].rid = tmp_str;
-    tmp_num = apps[first].prior;
-    apps[first].prior = apps[second].prior;
-    apps[second].prior = tmp_num;
+    tmp_str = app->rid;
+    app->rid = app->next->rid;
+    app->next->rid = tmp_str;
+
+    tmp_str = app->pix;
+    app->pix = app->next->pix;
+    app->next->pix = tmp_str;
+
+    tmp_num = app->prior;
+    app->prior = app->next->prior;
+    app->next->prior = tmp_num;
 }
 
-void    sort_app_prior(app_info *apps, unsigned short app_num)
+void    sort_apps(app_info **apps)
 {
-    for (unsigned short i = 1; i < app_num; ++i)
-        for (unsigned short j = 0; j < app_num - i; ++j)
-            if (apps[j].prior > apps[j + 1].prior)
-                swap_infos(apps, j, j + 1);
+    app_info    *i, *j;
+
+    j = (*apps)->next;
+    i = (*apps);
+    while (j != NULL)
+    {
+        while (i->next != NULL)
+        {
+            if (i->prior > i->next->prior)
+                swap_with_next(i);
+            i = i->next;
+        }
+        i = (*apps);
+        j = j->next;
+    }
+}
+
+void    del_n_sup_apps(app_info **apps)
+{
+    app_info    *prev_elem, *cur, *tmp;
+
+    prev_elem = NULL;
+    cur = *apps;
+    while (cur != NULL)
+    {
+        if (un_strcmp("A000000658", cur->rid))
+        {
+            if (prev_elem != NULL)
+                prev_elem->next = cur->next;
+            else
+                (*apps) = cur->next;
+            tmp = cur->next;
+            free_1_app(&cur);
+            cur = tmp;
+        }
+        else
+        {
+            prev_elem = cur;
+            cur = cur->next;
+        }
+    }
 }

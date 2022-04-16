@@ -76,16 +76,3 @@ unsigned short   char_to_num(unsigned char first, unsigned char second)
         ret += (first - 55) * 16;
     return ret;
 }
-
-void    print_supported(app_info *apps, unsigned short app_num)
-{
-    unsigned short  k = 1;
-    for (unsigned short i = 0; i < app_num; ++i)
-        if (!un_strncmp("A000000658", apps[i].rid, 10))
-        {
-            printf("%d%s\n%s %s\n", k, " RID:     PIX:", apps[i].rid, apps[i].pix);
-            ++k;
-        }
-    if (k == 1)
-        printf("%s\n", "No supported applications!");
-}

@@ -1,9 +1,16 @@
 NAME		=	test_task
 
 CC 			=	gcc
-CFLAGS		=	
+CFLAGS		=	-Wall -Wextra -Werror
 
-SRC			=	fill_data.c init_memory.c main.c sort.c utils.c
+SRC			=	fill_app_data.c \
+				init_memory.c \
+				main.c \
+				parse_tlv.c \
+				print_data.c \
+				sort.c \
+				tag_len_check.c \
+				utils.c
 
 OBJS		=	$(SRC:.c=.o)
 
